@@ -19,3 +19,9 @@
 *.exe
 *.out
 *.app
+
+# gedit backup files
+*.*~
+
+# Qt project user settings
+*.pro.user
