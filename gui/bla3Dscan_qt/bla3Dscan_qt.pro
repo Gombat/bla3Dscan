@@ -40,12 +40,17 @@ SOURCES += main.cpp\
         mainwindow.cpp \
     arduino_serial.cpp \
     cam_viewer.cpp \
-    cam_scene.cpp
+    cam_scene.cpp \
+    calibrationdialog.cpp \
+    utils.cpp
 
 HEADERS  += mainwindow.h \
     cam.h \
     arduino_serial.h \
     cam_viewer.h \
-    cam_scene.h
+    cam_scene.h \
+    calibrationdialog.h \
+    utils.h
 
-FORMS    += mainwindow.ui
+FORMS    += mainwindow.ui \
+    calibrationdialog.ui

@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include <QTimer>
+#include <QShowEvent>
 
 #include "arduino_serial.h"
 #include "cam_viewer.h"
@@ -27,25 +28,24 @@ namespace bla3Dscan {
         explicit MainWindow( QWidget *parent = 0) ;
         ~MainWindow();
 
+        void worker_scan( );
+
+    protected:
+        virtual void showEvent( QShowEvent *event );
+
     public slots:
         void connect_serialport( );
         void test_serialport( );
-        void cam_test( );
-
-    private slots:
-        void check_cam_thread( );
+        void start_scan( );
 
     private:
         Ui::MainWindow *ui;
-        Cam_viewer *m_cam_viewer;
+
+        //Cam_viewer *m_cam_viewer;
 
         int m_serialport;
 
-        //boost::shared_ptr< cv::VideoCapture > m_cam, m_cam1, m_cam2;
-        //std::string m_cam1_device, m_cam2_device;
-        //boost::shared_ptr< boost::thread > m_cam_thread;
-        //boost::shared_ptr< boost::mutex > m_cam_mutex;
-        //QTimer* m_qtimer;
+        boost::shared_ptr< boost::thread > m_scan_thread;
     };
 }
 

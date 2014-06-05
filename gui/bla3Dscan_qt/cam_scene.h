@@ -15,4 +15,5 @@ public slots:
 
 };
 
+
 #endif // CAM_SCENE_H

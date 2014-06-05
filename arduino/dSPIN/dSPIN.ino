@@ -112,6 +112,7 @@ void setup()
   dSPIN_SetParam(dSPIN_STEP_MODE, 
                       !dSPIN_SYNC_EN | 
                       dSPIN_STEP_SEL_1_128 | 
+                      //dSPIN_STEP_SEL_1 |
                       dSPIN_SYNC_SEL_1);
                       
   // Configure the MAX_SPEED register- this is the maximum number
@@ -123,14 +124,14 @@ void setup()
   //  appropriate value for this function. Note that for any move 
   //  or goto type function where no speed is specified, this 
   //  value will be used.
-  dSPIN_SetParam(dSPIN_MAX_SPEED, MaxSpdCalc(500));
+  dSPIN_SetParam(dSPIN_MAX_SPEED, MaxSpdCalc(50));
   
   // Configure the FS_SPD register- this is the speed at which the
   //  driver ceases microstepping and goes to full stepping. 
   //  FSCalc() converts a value in steps/s to a value suitable for
   //  this register; to disable full-step switching, you can pass 
   //  0x3FF to this register.
-  dSPIN_SetParam(dSPIN_FS_SPD, FSCalc(50));
+  dSPIN_SetParam(dSPIN_FS_SPD, FSCalc(500));
   
   // Configure the acceleration rate, in steps/tick/tick. There is
   //  also a DEC register; both of them have a function (AccCalc()
@@ -172,7 +173,10 @@ void setup()
   //  There are ACC, DEC, and HOLD KVAL registers as well; you may
   //  need to play with those values to get acceptable performance
   //  for a given application.
+  dSPIN_SetParam(dSPIN_KVAL_ACC, 0xFF);
   dSPIN_SetParam(dSPIN_KVAL_RUN, 0xFF);
+  dSPIN_SetParam(dSPIN_KVAL_DEC, 0xFF);
+  dSPIN_SetParam(dSPIN_KVAL_HOLD, 0x30);
   
   // Calling GetStatus() clears the UVLO bit in the status 
   //  register, which is set by default on power-up. The driver 
@@ -190,12 +194,15 @@ void loop()
 {
   delay(1000);
   
-  if ( Serial.available() ){ 
-    while ( Serial.read() != -1 ){}
+  while( Serial.available() ){
+  
+    int steps = Serial.read();
+    if ( steps < 0 ) break;
     
-    Serial.println("moving");
+    Serial.print("moving ");
+    Serial.println(steps);
     
-    dSPIN_Move(FWD, 4*128);
+    dSPIN_Move(FWD, static_cast< unsigned long >( steps ) * 128 );
     while (digitalRead(dSPIN_BUSYN) == LOW);  // Until the movement completes, the
                                               //  BUSYN pin will be low.
                                               

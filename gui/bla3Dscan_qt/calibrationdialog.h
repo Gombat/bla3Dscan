@@ -3,16 +3,30 @@
 
 #include <QDialog>
 
-class CalibrationDialog : public QDialog
-{
-    Q_OBJECT
-public:
-    explicit CalibrationDialog(QWidget *parent = 0);
+namespace Ui {
+    class CalibrationDialog;
+}
 
-signals:
+namespace bla3Dscan {
 
-public slots:
+    class CalibrationDialog : public QDialog
+    {
+        Q_OBJECT
+    public:
+        explicit CalibrationDialog(QWidget *parent = 0);
 
-};
+        float square_size( );
+        int num_squares_x( );
+        int num_squares_y( );
+
+    signals:
+
+    public slots:
+
+    private:
+        Ui::CalibrationDialog* ui;
+
+    };
+}
 
 #endif // CALIBRATIONDIALOG_H
