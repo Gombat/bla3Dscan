@@ -11,7 +11,6 @@ namespace bla3Dscan {
     MainWindow::MainWindow( QWidget *parent ) :
         QMainWindow( parent ),
         ui( new Ui::MainWindow ),
-        m_serialport( -1 ),
         m_port( m_io )
     {
         ui->setupUi( this );
@@ -24,7 +23,7 @@ namespace bla3Dscan {
 
     void MainWindow::showEvent( QShowEvent *event )
     {
-        ui->graphicsViewCam->initialize_cams( );
+        ui->graphicsViewCam->initialize_gui( );
         event->accept( );
     }
 
@@ -85,16 +84,16 @@ namespace bla3Dscan {
 
     void MainWindow::worker_scan( )
     {
-        if ( m_serialport == -1 )
+        if ( !m_port.is_open( ) )
         { connect_serialport( ); }
-        if ( m_serialport == -1 )
+        if ( !m_port.is_open( ) )
         {
             QMessageBox::critical( this, "Connection", "No serial connection to the stepper! Check your Stepper settings" );
             return;
         }
 
         unsigned int scan_precision =
-                Utils::translate_scan_precision( ui->comboBoxScanPrecision->currentText( ) );
+            Utils::translate_scan_precision( ui->comboBoxScanPrecision->currentText( ) );
         if ( static_cast< int >( scan_precision ) == -1 )
         {
             QMessageBox::critical( this, "Scan Precision", "Unknown Scan Precision!" );

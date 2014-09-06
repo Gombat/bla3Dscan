@@ -5,7 +5,6 @@
 #include <QTimer>
 #include <QShowEvent>
 
-#include "arduino_serial.h"
 #include "cam_viewer.h"
 
 #include <opencv2/opencv.hpp>
@@ -44,7 +43,6 @@ namespace bla3Dscan {
 
         //Cam_viewer *m_cam_viewer;
 
-        int m_serialport;
         boost::asio::io_service m_io;
         boost::asio::serial_port m_port;
 

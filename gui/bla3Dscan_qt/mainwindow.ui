@@ -225,6 +225,9 @@
         </item>
         <item row="5" column="0" colspan="2">
          <widget class="QPushButton" name="pushButtonCamCalibrationCollect">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
           <property name="sizePolicy">
            <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
             <horstretch>0</horstretch>
@@ -251,6 +254,9 @@
         </item>
         <item row="6" column="0" colspan="2">
          <widget class="QPushButton" name="pushButtonCamCalibrationSave">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
           <property name="text">
            <string>Save Calib</string>
           </property>
@@ -408,7 +414,7 @@
      <x>0</x>
      <y>0</y>
      <width>452</width>
-     <height>19</height>
+     <height>21</height>
     </rect>
    </property>
   </widget>

@@ -10,6 +10,7 @@
 #include <QComboBox>
 #include <QMessageBox>
 #include <QSpinBox>
+#include <QPushButton>
 #include <QGraphicsPixmapItem>
 #include <QShowEvent>
 
@@ -43,9 +44,9 @@ public:
     explicit Cam_viewer(QWidget *parent = 0);
 
 public:
-    void initialize_cams( );
+    void initialize_gui( );
 
-    void cam_open( int cam_idx );
+    bool cam_open( int cam_idx );
     cv::Mat cam_snapshot( int cam_idx );
 
 signals:
@@ -53,7 +54,7 @@ signals:
 public slots:
 
     void change_fps( int fps );
-    void cam_show( );
+    bool cam_show( );
     void cam_close( );
     void cam_calibration_dialog( );
     void cam_calibration( );
@@ -79,6 +80,12 @@ private:
 
     QSpinBox *m_cam_spinbox;
     QSpinBox *m_cam_fps_spinbox;
+
+    QPushButton* m_cam_show_pushbutton;
+    QPushButton* m_cam_close_pushbutton;
+    QPushButton* m_calibrate_pushbutton;
+    QPushButton* m_collect_pushbutton;
+    QPushButton* m_save_calib_pushbutton;
 
     bla3Dscan::CalibrationDialog* m_calib_dialog;
     float m_square_size;

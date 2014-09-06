@@ -12,6 +12,12 @@ Cam_viewer::Cam_viewer( QWidget *parent ) :
     m_cam_spinbox = NULL;
     m_cam_fps_spinbox = NULL;
 
+    m_cam_show_pushbutton = NULL;
+    m_cam_close_pushbutton = NULL;
+    m_calibrate_pushbutton = NULL;
+    m_collect_pushbutton = NULL;
+    m_save_calib_pushbutton = NULL;
+
     m_cam_scene = new Cam_scene( this );
     this->setScene( m_cam_scene );
     m_pixmap_item = new QGraphicsPixmapItem( );
@@ -24,7 +30,7 @@ Cam_viewer::Cam_viewer( QWidget *parent ) :
     connect( m_calib_dialog, SIGNAL( accepted( ) ), this, SLOT( cam_calibration( ) ) );
 }
 
-void Cam_viewer::initialize_cams( )
+void Cam_viewer::initialize_gui( )
 {
     QObjectList children = m_parent->children( );
     for ( int i = 0; i < children.size( ); i++ )
@@ -33,17 +39,28 @@ void Cam_viewer::initialize_cams( )
         { m_cam_spinbox = qobject_cast< QSpinBox* >( children.at(i) ); }
         if ( children.at(i)->objectName().compare( "spinBoxCamFPS" , Qt::CaseInsensitive ) == 0 )
         { m_cam_fps_spinbox = qobject_cast< QSpinBox* >( children.at(i) ); }
+
+        if ( children.at(i)->objectName().compare( "pushButtonCamShow" , Qt::CaseInsensitive ) == 0 )
+        { m_cam_show_pushbutton = qobject_cast< QPushButton* >( children.at(i) ); }
+        if ( children.at(i)->objectName().compare( "pushButtonCamClose" , Qt::CaseInsensitive ) == 0 )
+        { m_cam_close_pushbutton = qobject_cast< QPushButton* >( children.at(i) ); }
+        if ( children.at(i)->objectName().compare( "pushButtonCamCalibration" , Qt::CaseInsensitive ) == 0 )
+        { m_calibrate_pushbutton = qobject_cast< QPushButton* >( children.at(i) ); }
+        if ( children.at(i)->objectName().compare( "pushButtonCamCalibrationCollect" , Qt::CaseInsensitive ) == 0 )
+        { m_collect_pushbutton = qobject_cast< QPushButton* >( children.at(i) ); }
+        if ( children.at(i)->objectName().compare( "pushButtonCamCalibrationSave" , Qt::CaseInsensitive ) == 0 )
+        { m_save_calib_pushbutton = qobject_cast< QPushButton* >( children.at(i) ); }
     }
     assert( m_cam_spinbox );
     assert( m_cam_fps_spinbox );
 }
 
-void Cam_viewer::cam_open( int cam_idx )
+bool Cam_viewer::cam_open( int cam_idx )
 {
     if ( m_cam && m_cam->isOpened( ) )
     {
         if ( m_cam_current == cam_idx )
-            return;
+            return true;
         else
             m_cam->release( );
     }
@@ -52,17 +69,17 @@ void Cam_viewer::cam_open( int cam_idx )
     if ( !m_cam->isOpened( ) )
     {
         QMessageBox::warning( this, "Camera", QString( "Could not open cam %1 !" ).arg( cam_idx ) );
-        return;
+        return false;
     }
 
     m_cam_current = cam_idx;
+
+    return true;
 }
 
 cv::Mat Cam_viewer::cam_snapshot( int cam_idx )
 {
-    cam_open( cam_idx );
-
-    if ( !m_cam )
+    if ( !cam_open( cam_idx ) || !m_cam )
     {
         QMessageBox::critical( this, "Camera",
             QString("Could not collect an source image from camera %1" ).arg( cam_idx ) );
@@ -84,13 +101,16 @@ void Cam_viewer::change_fps( int fps )
     }
 }
 
-void Cam_viewer::cam_show( )
+bool Cam_viewer::cam_show( )
 {
     int cam_idx( m_cam_spinbox->value( ) );
-    cam_open( cam_idx );
+    if ( !cam_open( cam_idx ) )
+        return false;
 
     m_timer->start( 25 );
     change_fps( m_cam_fps_spinbox->value( ) );
+
+    return true;
 }
 
 void Cam_viewer::cam_close( )
@@ -102,11 +122,49 @@ void Cam_viewer::cam_close( )
 
 void Cam_viewer::cam_calibration_dialog( )
 {
-    m_calib_dialog->show( );
+    if ( m_calibrating )
+    {
+        // reset gui elements
+
+        m_cam_spinbox->setEnabled( true );
+        m_cam_fps_spinbox->setEnabled( true );
+
+        m_cam_show_pushbutton->setEnabled( true );
+        m_cam_close_pushbutton->setEnabled( true );
+        m_calibrate_pushbutton->setText( "Calibrate" );
+        m_collect_pushbutton->setEnabled( false );
+        m_save_calib_pushbutton->setEnabled( false );
+
+        // reset internals
+
+        m_calibrating = false;
+    }
+    else
+    {
+        m_calib_dialog->show( );
+    }
 }
 
 void Cam_viewer::cam_calibration( )
 {
+    // try to open the cam
+
+    if ( !cam_show( ) )
+        return;
+
+    // deactivate / activate gui elements
+
+    m_cam_spinbox->setEnabled( false );
+    m_cam_fps_spinbox->setEnabled( false );
+
+    m_cam_show_pushbutton->setEnabled( false );
+    m_cam_close_pushbutton->setEnabled( false );
+    m_calibrate_pushbutton->setText( "Abort Calib" );
+    m_collect_pushbutton->setEnabled( true );
+    m_save_calib_pushbutton->setEnabled( true );
+
+    // prepare internals
+
     m_square_size = m_calib_dialog->square_size( );
     m_num_squares_x = m_calib_dialog->num_squares_x( );
     m_num_squares_y = m_calib_dialog->num_squares_y( );
@@ -115,10 +173,6 @@ void Cam_viewer::cam_calibration( )
     m_chessboard_data.found = false;
     m_calibration_data.clear( );
 
-    cam_show( );
-
-    //cam_update_frame( );
-    //bool found = cv::findChessboardCorners( m_frame_src,  )
 }
 
 void Cam_viewer::cam_calibration_collect( )
@@ -144,6 +198,8 @@ void Cam_viewer::cam_calibration_save( )
             QMessageBox::warning( this, "Calibration Data", "Collect at least 4 samples!" );
             return;
         }
+
+        m_calibrating = false;
 
         cv::Mat camera_matrix, dist_coeffs;
         std::vector< cv::Mat > rvecs, tvecs;
@@ -171,8 +227,6 @@ void Cam_viewer::cam_calibration_save( )
                 camera_matrix, dist_coeffs, rvecs, tvecs, reproj_errs,
                 m_calibration_data, total_avg_err);
         }
-
-        m_calibrating = false;
     }
 }
 

@@ -39,7 +39,7 @@ namespace bla3Dscan {
             // the camera will be deinitialized automatically in VideoCapture destructor
         }
 
-        static bool run_calibration( const cv::Size image_size, cv::Mat camera_matrix, cv::Mat dist_coeffs,
+        static bool run_calibration( const cv::Size image_size, cv::Mat& camera_matrix, cv::Mat& dist_coeffs,
             const cv::Size board_size, const float square_size,
             const std::vector< std::vector< cv::Point2f > >& corners,
             std::vector< cv::Mat >& rvecs, std::vector< cv::Mat >& tvecs,
@@ -111,7 +111,8 @@ namespace bla3Dscan {
             return std::sqrt( total_err / total_points );              // calculate the arithmetical mean
         }
 
-        static void save_camera_params( const cv::Size image_size, cv::Mat camera_matrix, cv::Mat dist_coeffs,
+        static void save_camera_params( const cv::Size image_size,
+            const cv::Mat& camera_matrix, const cv::Mat& dist_coeffs,
             const std::vector< cv::Mat >& rvecs, const std::vector< cv::Mat >& tvecs,
             const std::vector< float >& reproj_errs,
             const std::vector< std::vector< cv::Point2f > >& corners,
@@ -121,7 +122,7 @@ namespace bla3Dscan {
                 cv::FileStorage fs( "camera_matrix.xml", cv::FileStorage::WRITE);
                 if ( fs.isOpened( ) )
                 {
-                    fs << camera_matrix;
+                    fs << "camera_matrix" << camera_matrix;
                     fs.release();
                 }
             }
@@ -129,7 +130,7 @@ namespace bla3Dscan {
                 cv::FileStorage fs( "dist_coeffs.xml", cv::FileStorage::WRITE);
                 if ( fs.isOpened( ) )
                 {
-                    fs << dist_coeffs;
+                    fs << "dist_coeffs" << dist_coeffs;
                     fs.release();
                 }
             }
@@ -138,7 +139,7 @@ namespace bla3Dscan {
             /*
             //TO READ
             cv::FileStorage fs(filename,FileStorage::READ);
-            fs["MY_MAT_NAME_IN_THE_XML"] >> camera_matrix;
+            fs["camera_matrix"] >> camera_matrix;
             fs.release();
             */
         }
