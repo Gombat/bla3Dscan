@@ -13,6 +13,7 @@
 #include <boost/shared_ptr.hpp>
 #include <boost/thread.hpp>
 #include <boost/bind.hpp>
+#include <boost/asio.hpp>
 
 namespace Ui {
     class MainWindow;
@@ -44,6 +45,8 @@ namespace bla3Dscan {
         //Cam_viewer *m_cam_viewer;
 
         int m_serialport;
+        boost::asio::io_service m_io;
+        boost::asio::serial_port m_port;
 
         boost::shared_ptr< boost::thread > m_scan_thread;
     };

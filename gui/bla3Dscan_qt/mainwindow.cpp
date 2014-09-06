@@ -11,15 +11,14 @@ namespace bla3Dscan {
     MainWindow::MainWindow( QWidget *parent ) :
         QMainWindow( parent ),
         ui( new Ui::MainWindow ),
-        m_serialport( -1 )
+        m_serialport( -1 ),
+        m_port( m_io )
     {
         ui->setupUi( this );
     }
 
     MainWindow::~MainWindow( )
     {
-        serialport_close( m_serialport );
-
         delete ui;
     }
 
@@ -31,33 +30,41 @@ namespace bla3Dscan {
 
     void MainWindow::connect_serialport( )
     {
-        if ( m_serialport == -1 )
+        if ( !m_port.is_open( ) )
         {
-            m_serialport = serialport_init(
-                ui->lineEditSerialport->text( ).toStdString( ).c_str( ),
-                atoi( ui->comboBoxBaud->currentText( ).toStdString( ).c_str( ) ) );
-            if ( m_serialport != -1 )
-            {
+            try{
+                m_port.open( ui->lineEditSerialport->text( ).toStdString( ).c_str( ) );
+                if ( !m_port.is_open( ) )
+                {
+                    QMessageBox::critical(this, "Connection Error!", "Could not open target serialport!" );
+                    return;
+                }
+
+                m_port.set_option( boost::asio::serial_port_base::baud_rate(
+                    atoi( ui->comboBoxBaud->currentText( ).toStdString( ).c_str( ) ) ) );
+
                 ui->pushButtonConnectSerialport->setText( "disconnect" );
 
                 ui->textBrowserSerialport->setText(
                     ui->textBrowserSerialport->toPlainText() + "connected\n");
             }
+            catch ( std::exception &e )
+            {
+                QMessageBox::critical(this, "Connection Error!", e.what( ) );
+            }
         }
         else
         {
-            serialport_close( m_serialport );
-            m_serialport = -1;
+            m_port.close( );
             ui->pushButtonConnectSerialport->setText( "connect" );
             ui->textBrowserSerialport->setText(
                 ui->textBrowserSerialport->toPlainText( ) + "disconnected\n");
         }
-        //std::cout << "serialport = " << serialport << std::endl;
     }
 
     void MainWindow::test_serialport( )
     {
-        int ret = serialport_writebyte( m_serialport, 2 );
+        int ret = boost::asio::write( m_port, boost::asio::buffer( "bla", strlen("bla") ) );
         if ( ret != -1 )
         {
             ui->textBrowserSerialport->setText(
@@ -94,32 +101,34 @@ namespace bla3Dscan {
             return;
         }
 
-        uint8_t steps = static_cast< uint8_t >(
-            200.0f / static_cast< float >( scan_precision ) );
+        std::vector< int8_t > steps( 1 );
+        steps[ 0 ] = static_cast< int8_t >( 200.0f / static_cast< float >( scan_precision ) );
+        //int8_t steps = static_cast< int8_t >( 200.0f / static_cast< float >( scan_precision ) );
 
         ui->tabWidget->setCurrentWidget( ui->tabCam );
         //cv::namedWindow( "frame_cam1" );
         //cv::namedWindow( "frame_cam2" );
         for ( unsigned int i = 0; i < scan_precision; i++ )
         {
-            int ret = serialport_writebyte( m_serialport, steps );
+            //int ret = serialport_writebyte( m_serialport, steps );
+            int ret = boost::asio::write( m_port, boost::asio::buffer(steps) );
             if ( ret == -1 )
             {
                 QMessageBox::critical( this, "Stepper",
-                    QString( "Could not send a step command to the stepper! (%1 steps)" ).arg( steps ) );
+                    QString( "Could not send a step command to the stepper! (%1 steps)" ).arg( steps[0] ) );
                 return;
             }
-            usleep( 1000 * ui->spinBoxScanPrecisionIdleTime->value( ) );
+            boost::this_thread::sleep( boost::posix_time::milliseconds( ui->spinBoxScanPrecisionIdleTime->value( ) ) );
 
             ui->graphicsViewCam->cam_open( ui->spinBoxScanCam1->value( ) );
             ui->graphicsViewCam->cam_update_frame( );
 
-            usleep( 1000 * ui->spinBoxScanPrecisionIdleTime->value( ) );
+            boost::this_thread::sleep( boost::posix_time::milliseconds( ui->spinBoxScanPrecisionIdleTime->value( ) ) );
 
             ui->graphicsViewCam->cam_open( ui->spinBoxScanCam2->value( ) );
             ui->graphicsViewCam->cam_update_frame( );
 
-            usleep( 1000 * ui->spinBoxScanPrecisionIdleTime->value( ) );
+            boost::this_thread::sleep( boost::posix_time::milliseconds( ui->spinBoxScanPrecisionIdleTime->value( ) ) );
 
             //cv::Mat frame_cam1 = ui->graphicsViewCam->cam_snapshot( ui->spinBoxScanCam1->value( ) );
             //cv::imshow( "frame_cam1", frame_cam1 );
