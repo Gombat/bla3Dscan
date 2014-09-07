@@ -143,6 +143,35 @@ namespace bla3Dscan {
             fs.release();
             */
         }
+
+        static bool load_camera_params( cv::Mat& camera_matrix, cv::Mat dist_coeffs,
+            const std::string& camera_matrix_file, const std::string& dist_coeffs_file )
+        {
+            {
+                cv::FileStorage fs( camera_matrix_file.c_str(), cv::FileStorage::READ );
+                if ( fs.isOpened( ) )
+                {
+                    fs["camera_matrix"] >> camera_matrix;
+                }
+                else
+                {
+                    return false;
+                }
+                fs.release();
+            }
+            {
+                cv::FileStorage fs( dist_coeffs_file.c_str(), cv::FileStorage::READ );
+                if ( fs.isOpened( ) )
+                {
+                    fs["dist_coeffs"] >> dist_coeffs;
+                }
+                else
+                {
+                    return false;
+                }
+                fs.release();
+            }
+        }
     };
 }
 

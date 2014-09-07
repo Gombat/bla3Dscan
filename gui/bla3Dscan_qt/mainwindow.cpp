@@ -2,16 +2,17 @@
 #include "ui_mainwindow.h"
 
 #include "cam.h"
-#include "utils.h"
 
 #include <QMessageBox>
 
-namespace bla3Dscan {
+namespace bla3Dscan
+{
 
     MainWindow::MainWindow( QWidget *parent ) :
         QMainWindow( parent ),
         ui( new Ui::MainWindow ),
-        m_port( m_io )
+        m_port( m_io ),
+        m_reconstruct( this )
     {
         ui->setupUi( this );
     }
@@ -25,6 +26,11 @@ namespace bla3Dscan {
     {
         ui->graphicsViewCam->initialize_gui( );
         event->accept( );
+    }
+
+    void MainWindow::closeEvent( QCloseEvent *event )
+    {
+        m_reconstruct.shutdown( );
     }
 
     void MainWindow::connect_serialport( )
@@ -79,64 +85,38 @@ namespace bla3Dscan {
 
     void MainWindow::start_scan( )
     {
-        m_scan_thread.reset( new boost::thread( &MainWindow::worker_scan, this) );
-    }
+        ui->comboBoxScanPrecision->setEnabled( false );
+        ui->spinBoxScanCam1->setEnabled( false );
+        ui->spinBoxScanCam2->setEnabled( false );
+        ui->spinBoxScanPrecisionIdleTime->setEnabled( false );
 
-    void MainWindow::worker_scan( )
-    {
         if ( !m_port.is_open( ) )
         { connect_serialport( ); }
         if ( !m_port.is_open( ) )
         {
             QMessageBox::critical( this, "Connection", "No serial connection to the stepper! Check your Stepper settings" );
+            end_scan( );
             return;
         }
 
-        unsigned int scan_precision =
-            Utils::translate_scan_precision( ui->comboBoxScanPrecision->currentText( ) );
-        if ( static_cast< int >( scan_precision ) == -1 )
-        {
-            QMessageBox::critical( this, "Scan Precision", "Unknown Scan Precision!" );
-            return;
-        }
-
-        std::vector< int8_t > steps( 1 );
-        steps[ 0 ] = static_cast< int8_t >( 200.0f / static_cast< float >( scan_precision ) );
-        //int8_t steps = static_cast< int8_t >( 200.0f / static_cast< float >( scan_precision ) );
+        // TODO show progress bar pop up which is modal and if closed abort scan
 
         ui->tabWidget->setCurrentWidget( ui->tabCam );
-        //cv::namedWindow( "frame_cam1" );
-        //cv::namedWindow( "frame_cam2" );
-        for ( unsigned int i = 0; i < scan_precision; i++ )
-        {
-            //int ret = serialport_writebyte( m_serialport, steps );
-            int ret = boost::asio::write( m_port, boost::asio::buffer(steps) );
-            if ( ret == -1 )
-            {
-                QMessageBox::critical( this, "Stepper",
-                    QString( "Could not send a step command to the stepper! (%1 steps)" ).arg( steps[0] ) );
-                return;
-            }
-            boost::this_thread::sleep( boost::posix_time::milliseconds( ui->spinBoxScanPrecisionIdleTime->value( ) ) );
+        QApplication::processEvents( );
 
-            ui->graphicsViewCam->cam_open( ui->spinBoxScanCam1->value( ) );
-            ui->graphicsViewCam->cam_update_frame( );
+        m_reconstruct.scan( m_port, ui );
 
-            boost::this_thread::sleep( boost::posix_time::milliseconds( ui->spinBoxScanPrecisionIdleTime->value( ) ) );
+        end_scan( );
 
-            ui->graphicsViewCam->cam_open( ui->spinBoxScanCam2->value( ) );
-            ui->graphicsViewCam->cam_update_frame( );
+        ui->tabWidget->setCurrentWidget( ui->tabWidget );
+    }
 
-            boost::this_thread::sleep( boost::posix_time::milliseconds( ui->spinBoxScanPrecisionIdleTime->value( ) ) );
-
-            //cv::Mat frame_cam1 = ui->graphicsViewCam->cam_snapshot( ui->spinBoxScanCam1->value( ) );
-            //cv::imshow( "frame_cam1", frame_cam1 );
-
-            //cv::Mat frame_cam2 = ui->graphicsViewCam->cam_snapshot( ui->spinBoxScanCam2->value( ) );
-            //cv::imshow( "frame_cam2", frame_cam2 );
-        }
-
-        ui->tabWidget->setCurrentWidget( ui->tabModel );
+    void MainWindow::end_scan( )
+    {
+        ui->comboBoxScanPrecision->setEnabled( true );
+        ui->spinBoxScanCam1->setEnabled( true );
+        ui->spinBoxScanCam2->setEnabled( true );
+        ui->spinBoxScanPrecisionIdleTime->setEnabled( true );
     }
 
 }

@@ -199,8 +199,8 @@ void loop()
     int steps = Serial.read();
     if ( steps < 0 ) break;
     
-    Serial.print("moving ");
-    Serial.println(steps);
+    //Serial.print("moving ");
+    //Serial.println(steps);
     
     dSPIN_Move(FWD, static_cast< unsigned long >( steps ) * 128 );
     while (digitalRead(dSPIN_BUSYN) == LOW);  // Until the movement completes, the

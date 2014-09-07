@@ -230,6 +230,12 @@ void Cam_viewer::cam_calibration_save( )
     }
 }
 
+void Cam_viewer::cam_update_frame( std::vector< cv::Mat >& vec_cam_images )
+{
+    cam_update_frame( );
+    vec_cam_images.push_back( m_frame_out );
+}
+
 void Cam_viewer::cam_update_frame( )
 {
     if ( !m_cam ){ m_timer->stop( ); return; }

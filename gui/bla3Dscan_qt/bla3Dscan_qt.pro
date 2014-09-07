@@ -67,14 +67,16 @@ SOURCES += main.cpp\
     cam_viewer.cpp \
     cam_scene.cpp \
     calibrationdialog.cpp \
-    utils.cpp
+    utils.cpp \
+    reconstruct.cpp
 
 HEADERS  += mainwindow.h \
     cam.h \
     cam_viewer.h \
     cam_scene.h \
     calibrationdialog.h \
-    utils.h
+    utils.h \
+    reconstruct.h
 
 FORMS    += mainwindow.ui \
     calibrationdialog.ui

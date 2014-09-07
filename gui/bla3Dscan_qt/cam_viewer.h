@@ -43,6 +43,8 @@ class Cam_viewer : public QGraphicsView
 public:
     explicit Cam_viewer(QWidget *parent = 0);
 
+    void cam_update_frame( std::vector< cv::Mat >& vec_cam_images );
+
 public:
     void initialize_gui( );
 
