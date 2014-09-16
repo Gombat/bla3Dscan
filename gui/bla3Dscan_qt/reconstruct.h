@@ -22,7 +22,6 @@ namespace bla3Dscan {
         Q_OBJECT
 
     public:
-        Reconstruct( ) : m_parent( NULL ) { }
         Reconstruct( QWidget* parent = NULL );
         virtual ~Reconstruct( ){ }
 

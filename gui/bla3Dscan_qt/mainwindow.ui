@@ -18,7 +18,7 @@
     <item row="0" column="0">
      <widget class="QTabWidget" name="tabWidget">
       <property name="currentIndex">
-       <number>1</number>
+       <number>2</number>
       </property>
       <widget class="QWidget" name="tabStepper">
        <attribute name="title">
@@ -321,7 +321,7 @@
         <item row="1" column="1">
          <widget class="QComboBox" name="comboBoxScanPrecision">
           <property name="currentIndex">
-           <number>1</number>
+           <number>0</number>
           </property>
           <item>
            <property name="text">
@@ -345,12 +345,22 @@
           </item>
           <item>
            <property name="text">
+            <string>1/32</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
             <string>1/25</string>
            </property>
           </item>
           <item>
            <property name="text">
             <string>1/20</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>1/16</string>
            </property>
           </item>
           <item>

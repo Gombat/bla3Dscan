@@ -4,6 +4,8 @@
 #include "cam.h"
 
 #include <QMessageBox>
+#include <QDir>
+#include <QDirIterator>
 #include <opencv2/nonfree/features2d.hpp>
 
 
@@ -150,6 +152,45 @@ namespace bla3Dscan
 
         cv::SIFT sift_detector;
         std::vector< std::vector< cv::KeyPoint > > vec_cam1_keypoints, vec_cam2_keypoints;
+		
+		// remove old images and save new ones
+		{
+			cv::Mat rgbimg; 
+
+			{
+				QDir dir( "images\\cam1" );
+				dir.mkpath(".");
+				dir.setNameFilters(QStringList() << ".png");
+				dir.setFilter(QDir::Files);
+				QStringList dirEntryList = dir.entryList( );
+				for( int i = 0; i < dirEntryList.size( ); i++ )
+				{ dir.remove(dirEntryList.at(i)); }
+			}
+
+			for ( unsigned int i = 0; i < m_vec_cam1_images.size( ); i++ )
+			{
+				cv::cvtColor(m_vec_cam1_images[ i ], rgbimg, CV_BGR2RGB );
+				cv::imwrite( QDir( QString().sprintf("images\\cam1\\image_cam1_%04d.png", i) ).absolutePath( ).toStdString( ), rgbimg ); 
+			}
+			
+			{
+				QDir dir( "images\\cam2" );
+				dir.mkpath(".");
+				dir.setNameFilters(QStringList() << ".png");
+				dir.setFilter(QDir::Files);
+				QStringList dirEntryList = dir.entryList( );
+				for( int i = 0; i < dirEntryList.size( ); i++ )
+				{ dir.remove(dirEntryList.at(i)); }
+			}
+
+			for ( unsigned int i = 0; i < m_vec_cam2_images.size( ); i++ )
+			{ 
+				cv::cvtColor(m_vec_cam2_images[ i ], rgbimg, CV_BGR2RGB );
+				cv::imwrite( QDir( QString().sprintf("images\\cam2\\image_cam2_%04d.png", i) ).absolutePath( ).toStdString( ), rgbimg );
+			}
+			return true;
+		}
+
         sift_detector.detect( m_vec_cam1_images, vec_cam1_keypoints );
         sift_detector.detect( m_vec_cam2_images, vec_cam2_keypoints );
 
